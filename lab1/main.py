@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
 ## Zadanie 1 ##
+print("ZADANIE 1\n")
 
 def euler_method(x0, r, K, E, dt, T):
     N = int(T / dt)
@@ -74,12 +75,14 @@ def calc_bifurk():
 result_x, result_r = calc_bifurk()
 
 # Wykres 2 
-plt.figure(figsize=(5, 3), dpi=200)
+plt.figure(figsize=(5, 4), dpi=200)
 plt.plot(result_r, result_x, ",", color='k')
-plt.title('Zadanie 1 Porównanie metod numerycznych, analitycznych i asymptot dla różnych wartości E')
+plt.xlabel('r*dt')
+plt.ylabel('Fixed point x')
 plt.show()
 
 ## Zadanie 2 ##
+print("ZADANIE 2\n")
 
 P = 0.01   # Roczna wpłata
 r = 0.05   # Roczna stopa oprocentowania (5%)
@@ -87,12 +90,14 @@ target = 10**6  # Cel: 1 milion
 
 # Obliczenie
 T = np.log((target * r / P) + 1) / r
-print(f"Czas potrzebny na zgromadzenie 1 miliona: {T:.2f} lat")
+print(f"Czas potrzebny na zgromadzenie 1 miliona: {T:.2f} lat\n")
 
 ## Zadanie 3 ##
+print("ZADANIE 3\n")
 
 x = np.array(range(1790, 2000, 10))
-y = np.array([3900000, 5300000, 7200000, 9600000, 12900000, 17100000, 23100000, 31400000, 38600000, 50200000, 62900000, 76000000, 92000000, 105700000, 122800000, 131700000, 150700000, 179000000, 205000000, 226500000, 248700000])
+y = np.array([3900000, 5300000, 7200000, 9600000, 12900000, 17100000, 23100000, 31400000, 38600000, 50200000, 62900000,
+               76000000, 92000000, 105700000, 122800000, 131700000, 150700000, 179000000, 205000000, 226500000, 248700000])
 
 plt.scatter(x, y)
 plt.xlabel("Year")
@@ -107,7 +112,6 @@ popt, _ = curve_fit(exponential_func, x, y, p0=(1, 1e-8))
 
 y_fit = exponential_func(x, *popt)
 
-# Plot the dataset and the fitted curve
 plt.scatter(x, y, label="Data points", color="blue")
 plt.plot(x, y_fit, label=f"Best fit: x(t) = {popt[0]:.5f} * e^({popt[1]:.5f}t)", color="red")
 plt.xlabel("x")
@@ -117,13 +121,12 @@ plt.legend()
 plt.grid()
 plt.show()
 
-# Print the fitted parameters
-print(f"Best fit equation: x(t) = {popt[0]:.5f} * e^({popt[1]:.5f}*t)")
+print(f"Dopasowane równanie: x(t) = {popt[0]:.5f} * e^({popt[1]:.5f}*t)")
 
 ## Zadanie 4 ##
+print("ZADANIE 4\n")
 
 def mandelbrot(c, max_iter):
-    """Oblicza liczbę iteracji zanim z przekroczy próg dla danej liczby zespolonej c."""
     z = 0
     for n in range(max_iter):
         if abs(z) > 2:
@@ -132,7 +135,6 @@ def mandelbrot(c, max_iter):
     return max_iter
 
 def mandelbrot_set(xmin, xmax, ymin, ymax, width, height, max_iter):
-    """Generuje zbiór Mandelbrota na siatce kompleksowych liczb."""
     x = np.linspace(xmin, xmax, width)
     y = np.linspace(ymin, ymax, height)
     fractal = np.zeros((height, width))
@@ -143,15 +145,13 @@ def mandelbrot_set(xmin, xmax, ymin, ymax, width, height, max_iter):
     
     return fractal
 
-# Parametry obrazu
 xmin, xmax, ymin, ymax = -2, 1, -1.5, 1.5
 width, height = 800, 800
 max_iter = 100
 
-# Generowanie zbioru Mandelbrota
 fractal = mandelbrot_set(xmin, xmax, ymin, ymax, width, height, max_iter)
 
-# Rysowanie
+# Wykres
 plt.figure(figsize=(10, 10))
 plt.imshow(fractal, extent=(xmin, xmax, ymin, ymax), cmap='inferno')
 plt.colorbar(label='Liczba iteracji')
