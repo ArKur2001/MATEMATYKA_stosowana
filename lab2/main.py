@@ -5,104 +5,102 @@ from scipy.special import jn
 
 #ZADANIE_1#
 
-import numpy as np
-import matplotlib.pyplot as plt
+print("ZADANIE 1")
 
-r = 0 
-F0 = 1
-omega = 7 
-omega0 = 5
-u0 = 1
-x0 = 1
-
-def forced_damped_oscillator(t, y):
+def forced_damped_oscillator(t, y, r, F0, omega, omega0):
     x, v = y
     dxdt = v
-    dvdt = (F0 * np.cos(omega * t) - r * v / omega - omega0 * omega0 * x)
+    dvdt = (F0 * np.cos(omega * t) - r * v - omega0**2 * x)
     return np.array([dxdt, dvdt])
 
-def euler_method(f, y0, t0, tf, dt):
+def euler_method(f, y0, t0, tf, dt, r, F0, omega, omega0):
     t = np.arange(t0, tf, dt)
     y = np.zeros((len(t), len(y0)))
     y[0] = y0
     for i in range(1, len(t)):
-        y[i] = y[i-1] + dt * f(t[i-1], y[i-1])
+        y[i] = y[i-1] + dt * f(t[i-1], y[i-1], r, F0, omega, omega0)
     return t, y
 
-def analytic_solution(t):
-    # Homogeneous solution
-    x_h = x0 * np.cos(omega0 * t) + (u0 * np.sin(omega0 * t)) / omega0
-
+def analytic_solution(t, x0, u0, r, F0, omega, omega0):
     if omega0 != omega:
-        # Particular solution
-        x_p = (F0 * np.cos(omega * t) - np.cos(omega0 * t) ) / (omega0**2 - omega**2)
+        A = (F0 / (omega0**2 - omega**2))
+        C1 = x0 - A
+        C2 = (u0 + r * x0) / omega0
+        x_p = A * np.cos(omega * t)
     else:
-        x_p = -(np.cos(omega0 * t) * (F0 - 1))
+        A = F0 / (2 * omega0)
+        C1 = x0
+        C2 = (u0 + r * x0) / omega0
+        x_p = A * t * np.sin(omega0 * t)
+    
+    x_h = C1 * np.cos(omega0 * t) + C2 * np.sin(omega0 * t)
     
     return x_h + x_p, x_h, x_p
 
-y0 = [0.0, 0.0]
-t0 = 0.0
-tf = 20 
-dt = 0.001 
+cases = [
+    (0, 0, 0, 1, 7, 5, 20),
+    (0, 1, 1, 1, 7, 5, 20),
+    (0, 1, 1, 1, 5.1, 5, 100),
+    (2, 1, 1, 1, 7, 5, 40),
+    (2, 0, 0, 1, 7, 5, 40),
+    (2, 1, 1, 1, 5.1, 5, 40)
+]
 
-t, y_numerical = euler_method(forced_damped_oscillator, y0, t0, tf, dt)
+t0, dt = 0.0, 0.001
 
-x_analytic, x_h, x_p = analytic_solution(t)
+for r, x0, u0, F0, omega, omega0, tf in cases:
+    y0 = [x0, u0]
+    t, y_numerical = euler_method(forced_damped_oscillator, y0, t0, tf, dt, r, F0, omega, omega0)
+    x_analytic, x_h, x_p = analytic_solution(t, x0, u0, r, F0, omega, omega0)
+    error = np.sum(np.abs(y_numerical[:, 0] - x_analytic))
+    
+    fig, axs = plt.subplots(2, 1, figsize=(10, 8))
+    
+    axs[0].plot(t, y_numerical[:, 0], label='Numeryczne', alpha=0.7)
+    axs[0].plot(t, x_analytic, label='Analityczne', linestyle='dashed')
+    axs[0].set_xlabel('t')
+    axs[0].set_ylabel('x(t)')
+    axs[0].set_title(f'r={r}, x0={x0}, u0={u0}, F0={F0}, omega={omega}, omega0={omega0}')
+    axs[0].legend()
+    axs[0].grid(True)
+    axs[0].text(0.05, 0.95, f'Błąd całkowity: {error:.2e}', transform=axs[0].transAxes, fontsize=12,
+                verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+    
+    axs[1].plot(t, x_h, label='Homogeniczne')
+    axs[1].plot(t, x_p, label='Partykularne', linestyle='dashed')
+    axs[1].set_xlabel('t')
+    axs[1].set_ylabel('x(t)')
+    axs[1].set_title('Rozkład na składową homogeniczną i partykularną')
+    axs[1].legend()
+    axs[1].grid(True)
+    
+    plt.tight_layout()
+    plt.show()
+    
+    print(f'Błąd całkowity dla przypadku r={r}, x0={x0}, u0={u0}, F0={F0}, omega={omega}, omega0={omega0}: {error:.2e}')
 
-error = np.sum(np.abs(y_numerical[:, 0] - x_analytic))
-
-# Create a figure with three subplots
-fig, axs = plt.subplots(2, 2, figsize=(15, 10))
-
-# Plot the numerical and analytic solutions
-axs[0, 0].plot(t, y_numerical[:, 0], label='Numerical Solution')
-axs[0, 0].plot(t, x_analytic, label='Analytic Solution', linestyle='dashed')
-axs[0, 0].set_xlabel('t')
-axs[0, 0].set_ylabel('x(t)')
-axs[0, 0].set_title(f'x0={x0}, u0={u0}, r={r}, F0={F0}, ω={omega}, ω0={omega0}')
-axs[0, 0].legend()
-axs[0, 0].grid(True)
-axs[0, 0].text(0.25, 0.95, f'Total error: {error:.2e}', transform=axs[0, 0].transAxes, fontsize=12,
-               verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
-
-# Plot homogeneous and particular solutions
-axs[1, 0].plot(t, x_h, label='Homogeneous Solution')
-axs[1, 0].plot(t, x_p, label='Particular Solution', linestyle='dashed')
-axs[1, 0].set_xlabel('t')
-axs[1, 0].set_ylabel('x(t)')
-axs[1, 0].set_title('Homogeneous and Particular Solutions')
-axs[1, 0].legend()
-axs[1, 0].grid(True)
-
-# Plot the steady-state variation of amplitude
+# Wykres Amplituda w stanie ustalonym vs Częstotliwość względna
+r_values = [0.1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20]
 relative_frequencies = np.linspace(0.1, 2.0, 500)
-r_values = [0.1] + list(range(1, 21))
-amplitudes = {r: [] for r in r_values}
+plt.figure(figsize=(10, 5))
 
 for r in r_values:
+    amplitudes = []
     for omega_rel in relative_frequencies:
-        omega = omega_rel * omega0
-        if omega0 != omega:
-            A = F0 / np.sqrt((omega0**2 - omega**2)**2 + (r * omega)**2)
+        omega = omega_rel * cases[0][5]
+        if cases[0][5] != omega:
+            A = cases[0][3] / np.sqrt((cases[0][5]**2 - omega**2)**2 + (r * omega)**2)
         else:
-            A = F0 / (r * omega)
-        amplitudes[r].append(A)
+            A = cases[0][3] / (r * omega)
+        amplitudes.append(A)
+    plt.plot(relative_frequencies, amplitudes, label=f'r={r}')
 
-for r in r_values:
-    axs[0, 1].plot(relative_frequencies, amplitudes[r], label=f'r = {r}')
-axs[0, 1].set_xlabel('Relative Frequency (ω/ω0)')
-axs[0, 1].set_ylabel('Amplitude')
-axs[0, 1].set_title('Steady-State Amplitude vs. Relative Frequency for Different r Values')
-axs[0, 1].legend()
-axs[0, 1].grid(True)
-
-axs[1, 1].axis('off')
-
-plt.tight_layout()
+plt.xlabel('Relative Frequency (ω/ω0)')
+plt.ylabel('Amplitude')
+plt.title('Amplituda w stanie ustalonym vs Częstotliwość względna')
+plt.legend()
+plt.grid(True)
 plt.show()
-
-print(f"Total error: {error}")
 
 #ZADANIE_2#
 
