@@ -95,8 +95,8 @@ for r in r_values:
         amplitudes.append(A)
     plt.plot(relative_frequencies, amplitudes, label=f'r={r}')
 
-plt.xlabel('Relative Frequency (ω/ω0)')
-plt.ylabel('Amplitude')
+plt.xlabel('Częstotliwość względna (ω/ω0)')
+plt.ylabel('Amplituda')
 plt.title('Amplituda w stanie ustalonym vs Częstotliwość względna')
 plt.legend()
 plt.grid(True)
