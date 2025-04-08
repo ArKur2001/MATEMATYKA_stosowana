@@ -66,6 +66,39 @@ def wls_approximation_polynomial(x, y, degree):
     y_approx = X @ coeffs
     return y_approx
 
+
+# Funkcje wagowe
+def constant_weight(x):
+    return np.ones_like(x)
+
+def triangle_weight(x):
+    return (1 - np.abs(x)) * 1000
+
+def v_shape_weight(x):
+    return 1000 - (1 - np.abs(x)) * 1000
+
+def wls_with_weight(x, y, degree, weight_func, basis='polynomial'):
+    W = np.diag(weight_func(x))
+
+    if basis == 'polynomial':
+        X = np.vander(x, degree + 1, increasing=True)
+    elif basis == 'chebyshev':
+        X = chebyshev_polynomials(x, degree).T
+    else:
+        raise ValueError("basis must be 'polynomial' or 'chebyshev'")
+
+    A = X.T @ W @ X
+    b = X.T @ W @ y
+    coeffs = np.linalg.solve(A, b)
+    y_approx = X @ coeffs
+    return y_approx
+
+weights = {
+    "Stała": constant_weight,
+    "Trójkątna": triangle_weight,
+    "Trójkątna odwrotna": v_shape_weight
+}
+
 # Zakres x w [-π, π]
 x = np.linspace(-np.pi, np.pi, 400)
 
@@ -98,9 +131,9 @@ plt.figure(figsize=(10, 6))
 plt.plot(x, y_exact, label='e^x', linewidth=2)
 plt.plot(x, y_taylor, label="Taylor (n=5)", color="red", linestyle="--", linewidth=2)
 plt.plot(x_fourier, y_fourier, label=f"Fourier (n = {n_terms})", color="green", linestyle=":", linewidth=2)
-plt.plot(x, y_wls_poly, label="x^n (n=5)", color="orange", linestyle="dashdot", linewidth=2)
+plt.plot(x, y_wls_poly, label="$x^n$ (n=5)", color="orange", linestyle="dashdot", linewidth=2)
 plt.plot(x, y_wls_chebyshev, label="Chebyshev (n=5)", color="purple", linestyle="-.", linewidth=2)
-plt.title("Funkcja e^x i jej aproksymacje")
+plt.title("Funkcja $e^x$ i jej aproksymacje")
 plt.xlabel("x")
 plt.ylabel("y")
 plt.legend()
@@ -113,7 +146,7 @@ fig, axs = plt.subplots(1, 2, figsize=(16, 6), sharex=True)
 # Pełny zakres błędów
 axs[0].plot(x, error_taylor, label="Taylor (n=5)", color="red", linestyle="--")
 axs[0].plot(x, error_fourier, label="Fourier (n=10)", color="green", linestyle=":")
-axs[0].plot(x, error_wls_poly, label="x^n (n=5)", color="orange", linestyle="dashdot")
+axs[0].plot(x, error_wls_poly, label="$x^n$ (n=5)", color="orange", linestyle="dashdot")
 axs[0].plot(x, error_wls_chebyshev, label="Chebyshev (n=5)", color="purple", linestyle="-.")
 axs[0].set_title("Błąd aproksymacji – pełny zakres")
 axs[0].set_xlabel("x")
@@ -124,7 +157,7 @@ axs[0].grid(True)
 # Ograniczony zakres błędów
 axs[1].plot(x, error_taylor, label="Taylor (n=5)", color="red", linestyle="--")
 axs[1].plot(x, error_fourier, label="Fourier (n=10)", color="green", linestyle=":")
-axs[1].plot(x, error_wls_poly, label="x^n (n=5)", color="orange", linestyle="dashdot")
+axs[1].plot(x, error_wls_poly, label="$x^n$ (n=5)", color="orange", linestyle="dashdot")
 axs[1].plot(x, error_wls_chebyshev, label="Chebyshev (n=5)", color="purple", linestyle="-.")
 axs[1].set_title("Błąd aproksymacji – przycięty do [-1, 1]")
 axs[1].set_xlabel("x")
@@ -137,14 +170,14 @@ plt.show()
 
 # --- Wykresy wielomianów bazowych w jednej figurze z 2 subplotami ---
 x_base = np.linspace(-1, 1, 400)
-degree = 5
+degree = 4
 
 fig, axs = plt.subplots(1, 2, figsize=(16, 6), sharex=True, sharey=True)
 
 # x^n
 for i in range(degree + 1):
-    axs[0].plot(x_base, x_base**i, label=f"x^{i}")
-axs[0].set_title("Bazowe wielomiany potęgowe x^n")
+    axs[0].plot(x_base, x_base**i, label=f"$x^{i}$")
+axs[0].set_title("Bazowe wielomiany potęgowe $x^n$")
 axs[0].set_xlabel("x")
 axs[0].set_ylabel("Wartość")
 axs[0].grid(True)
@@ -156,6 +189,38 @@ for i in range(degree + 1):
 axs[1].set_title("Wielomiany Czebyszewa")
 axs[1].set_xlabel("x")
 axs[1].grid(True)
+
+plt.tight_layout()
+plt.show()
+
+fig, axs = plt.subplots(len(weights), 2, figsize=(12, 12))
+
+for idx, (name, weight_func) in enumerate(weights.items()):
+    w_vals = weight_func(x_scaled)
+    
+    # Rysuj funkcję wagową
+    axs[idx, 0].plot(x_scaled, w_vals)
+    axs[idx, 0].set_title(f"Funkcja wagowa: {name}")
+    axs[idx, 0].set_xlabel("x")
+    axs[idx, 0].set_ylabel("W(x)")
+    axs[idx, 0].grid(True)
+
+    # WLS z daną wagą (na wielomianach potęgowych)
+    y_wls_weighted = wls_with_weight(x_scaled, y_scaled, degree=5, weight_func=weight_func, basis='polynomial')
+    error_weighted = np.abs(y_exact - y_wls_weighted)
+
+    # Wykres błędu
+    axs[idx, 1].plot(x, error_weighted, label="WLS z wagą", color="blue")
+    axs[idx, 1].plot(x, error_taylor, label="Taylor (n=5)", color="red", linestyle="--")
+    axs[idx, 1].plot(x, error_fourier, label="Fourier (n=10)", color="green", linestyle=":")
+    axs[idx, 1].plot(x, error_wls_poly, label="$x^n$ (n=5)", color="orange", linestyle="dashdot")
+    axs[idx, 1].plot(x, error_wls_chebyshev, label="Chebyshev (n=5)", color="purple", linestyle="-.")
+    axs[idx, 1].set_title(f"Funkcja $e^x$ – błąd aproksymacji z wagą: {name}")
+    axs[idx, 1].set_xlabel("x")
+    axs[idx, 1].set_ylabel("Błąd")
+    axs[idx, 1].set_ylim(-1, 1)  
+    axs[idx, 1].legend()
+    axs[idx, 1].grid(True)
 
 plt.tight_layout()
 plt.show()
