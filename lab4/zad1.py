@@ -224,3 +224,145 @@ for idx, (name, weight_func) in enumerate(weights.items()):
 
 plt.tight_layout()
 plt.show()
+
+#===========================================================================================================================================
+#===========================================================================================================================================
+
+# Funkcja |sin(x)|
+def f_abs_sin(x):
+    return np.abs(np.sin(x))
+
+# Przybliżenie Taylora dla |sin(x)| (n = 7)
+def taylor_approximation_abs_sin(x, n):
+    approximation = np.zeros_like(x)
+    for i in range(n+1):
+        approximation += ((-1)**i) * (x**(2*i+1)) / math.factorial(2*i+1)
+    return np.abs(approximation)
+
+# Aproksymacja szeregiem Fouriera dla |sin(x)| (n = 10)
+def fourier_series_approximation_abs_sin(func, n_terms, samples=1000, interval=(-np.pi, np.pi)):
+    a, b = interval
+    L = (b - a) / 2
+    x_values = np.linspace(a, b, samples)
+
+    a0 = (1/L) * quad(lambda x: func(x), a, b)[0]
+
+    an = []
+    bn = []
+    for n in range(1, n_terms+1):
+        an_coeff = (1/L) * quad(lambda x: func(x) * np.cos(n*np.pi*x/L), a, b)[0]
+        bn_coeff = (1/L) * quad(lambda x: func(x) * np.sin(n*np.pi*x/L), a, b)[0]
+        an.append(an_coeff)
+        bn.append(bn_coeff)
+
+    approximation = a0/2 * np.ones_like(x_values)
+    for n in range(1, n_terms+1):
+        approximation += an[n-1] * np.cos(n*np.pi*x_values/L) + bn[n-1] * np.sin(n*np.pi*x_values/L)
+
+    return x_values, np.abs(approximation)
+
+# WLS z Czebyszewem dla |sin(x)| (n = 15)
+def wls_approximation_chebyshev_abs_sin(x, y, degree):
+    T = chebyshev_polynomials(x, degree).T
+    W = np.diag(np.ones_like(x))
+    A = T.T @ W @ T
+    b = T.T @ W @ y
+    coeffs = np.linalg.solve(A, b)
+    y_approx = T @ coeffs
+    return y_approx
+
+# WLS z klasycznymi wielomianami dla |sin(x)| (n = 15)
+def wls_approximation_polynomial_abs_sin(x, y, degree):
+    X = np.vander(x, degree + 1, increasing=True)
+    W = np.diag(np.ones_like(x))
+    A = X.T @ W @ X
+    b = X.T @ W @ y
+    coeffs = np.linalg.solve(A, b)
+    y_approx = X @ coeffs
+    return y_approx
+
+# Funkcje wagowe i wls
+def wls_with_weight_abs_sin(x, y, degree, weight_func, basis='polynomial'):
+    W = np.diag(weight_func(x))
+
+    if basis == 'polynomial':
+        X = np.vander(x, degree + 1, increasing=True)
+    elif basis == 'chebyshev':
+        X = chebyshev_polynomials(x, degree).T
+
+    A = X.T @ W @ X
+    b = X.T @ W @ y
+    coeffs = np.linalg.solve(A, b)
+    y_approx = X @ coeffs
+    return y_approx
+
+# Obliczenie funkcji i przybliżeń dla |sin(x)|
+y_exact_abs_sin = f_abs_sin(x)
+y_taylor_abs_sin = taylor_approximation_abs_sin(x, 7)
+
+# Fourier dla |sin(x)|
+x_fourier_abs_sin, y_fourier_abs_sin = fourier_series_approximation_abs_sin(f_abs_sin, 10, samples, (a, b))
+
+# WLS – przeskalowanie x do [-1, 1]
+x_scaled_abs_sin = x / np.pi
+y_scaled_abs_sin = f_abs_sin(x)
+
+# WLS: Chebyshev i klasyczny wielomian dla |sin(x)| (n = 15)
+y_wls_chebyshev_abs_sin = wls_approximation_chebyshev_abs_sin(x_scaled_abs_sin, y_scaled_abs_sin, degree=15)
+y_wls_poly_abs_sin = wls_approximation_polynomial_abs_sin(x_scaled_abs_sin, y_scaled_abs_sin, degree=15)
+
+# --- Wykres funkcji i aproksymacji dla |sin(x)| ---
+plt.figure(figsize=(10, 6))
+plt.plot(x, y_exact_abs_sin, label='|sin(x)|', linewidth=2)
+plt.plot(x, y_taylor_abs_sin, label="Taylor (n=7)", color="red", linestyle="--", linewidth=2)
+plt.plot(x_fourier_abs_sin, y_fourier_abs_sin, label=f"Fourier (n = 10)", color="green", linestyle=":", linewidth=2)
+plt.plot(x, y_wls_poly_abs_sin, label="$x^n$ (n=15)", color="orange", linestyle="dashdot", linewidth=2)
+plt.plot(x, y_wls_chebyshev_abs_sin, label="Chebyshev (n=15)", color="purple", linestyle="-.", linewidth=2)
+plt.title("Funkcja $|sin(x)|$ i jej aproksymacje")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Funkcje wagowe
+weights = {
+    "Stała": constant_weight,
+    "Trójkątna": triangle_weight,
+    "Trójkątna odwrotna": v_shape_weight
+}
+
+# --- Wykresy funkcji wagowych i aproksymacji WLS dla |sin(x)| ---
+fig, axs = plt.subplots(len(weights), 2, figsize=(12, 12))
+
+for idx, (name, weight_func) in enumerate(weights.items()):
+    w_vals = weight_func(x_scaled_abs_sin)
+    
+    # Rysuj funkcję wagową
+    axs[idx, 0].plot(x_scaled_abs_sin, w_vals)
+    axs[idx, 0].set_title(f"Funkcja wagowa: {name}")
+    axs[idx, 0].set_xlabel("x")
+    axs[idx, 0].set_ylabel("W(x)")
+    axs[idx, 0].grid(True)
+
+    # WLS z daną wagą (na wielomianach potęgowych)
+    y_wls_weighted_abs_sin = wls_with_weight_abs_sin(x_scaled_abs_sin, y_scaled_abs_sin, degree=15, weight_func=weight_func, basis='polynomial')
+
+    # Rysuj WLS z wagą
+    axs[idx, 1].plot(x, np.abs(y_exact_abs_sin - y_wls_weighted_abs_sin), label="WLS z wagą", color="blue")
+    axs[idx, 1].plot(x, np.abs(y_exact_abs_sin - y_taylor_abs_sin), label="Taylor (n=7)", color="red", linestyle="--")
+    axs[idx, 1].plot(x, np.abs(y_exact_abs_sin - np.interp(x, x_fourier_abs_sin, y_fourier_abs_sin)), label="Fourier (n=10)", color="green", linestyle=":")
+    axs[idx, 1].plot(x, np.abs(y_exact_abs_sin - y_wls_poly_abs_sin), label="$x^n$ (n=15)", color="orange", linestyle="dashdot")
+    axs[idx, 1].plot(x, np.abs(y_exact_abs_sin - y_wls_chebyshev_abs_sin), label="Chebyshev (n=15)", color="purple", linestyle="-.")
+
+    # Ustawienie zakresu osi y
+    axs[idx, 1].set_title(f"Funkcja $|sin(x)|$ – błąd aproksymacji z wagą: {name}")
+    axs[idx, 1].set_xlabel("x")
+    axs[idx, 1].set_ylabel("Błąd")
+    axs[idx, 1].set_ylim(-0.1, 0.2)  # Ustawienie zakresu y
+    axs[idx, 1].legend()
+    axs[idx, 1].grid(True)
+
+plt.tight_layout()
+plt.show()
+
