@@ -8,7 +8,6 @@ sigma_x = 1             # Odchylenie standardowe sygnału x[n]
 sigma_v = 0.5           # Odchylenie standardowe szumu
 omega_c1 = np.pi / 2    # Wyjściowa częstotliwość odcięcia
 
-# Tworzenie odpowiedzi impulsowej filtru dolnoprzepustowego
 def lowpass_impulse_response(omega_c, M):
     h = np.zeros(M)
     for n in range(-M//2, M//2):
@@ -20,15 +19,12 @@ def lowpass_impulse_response(omega_c, M):
 
 h_true = lowpass_impulse_response(omega_c1, M)
 
-# Generowanie sygnału wejściowego x[n]
 x = np.random.normal(0, sigma_x, N)
 
-# Filtracja sygnału przez układ (d[n])
 d_clean = np.convolve(x, h_true, mode='full')[:N]
 v = np.random.normal(0, sigma_v, N)
 d = d_clean + v
 
-# Funkcja LMS
 def LMS(x, d, M, mu):
     N = len(x)
     h = np.zeros(M)
@@ -42,7 +38,6 @@ def LMS(x, d, M, mu):
         H[n, :] = h
     return e, H
 
-# Poprawiona funkcja RLS
 def RLS(x, d, M, lam, delta=0.01):
     N = len(x)
     h = np.zeros(M)
@@ -61,7 +56,6 @@ def RLS(x, d, M, lam, delta=0.01):
         H[n, :] = h
     return e, H
 
-# Symulacja
 mu = 0.001
 lam1 = 1
 lam2 = 0.999
@@ -72,11 +66,9 @@ e_RLS_0999, H_RLS_0999 = RLS(x, d, M, lam2)
 
 # --- Wykresy ---
 
-# Impulse Response Estimate oraz błąd estymacji
 plt.figure(figsize=(14,6))
 n = np.arange(-M//2, M//2)
 
-# Estymacje h[n]
 plt.subplot(1, 2, 1)
 plt.plot(n, h_true, 'ko-', label='True')
 plt.plot(n, H_LMS[-1,:], 'r*-', label='LMS, µ=0.001')
@@ -88,7 +80,6 @@ plt.title('Disturbed desired signal d[n]')
 plt.grid()
 plt.legend()
 
-# Błąd estymacji współczynników: v_est[n] - h[n]
 plt.subplot(1, 2, 2)
 plt.plot(n, H_LMS[-1,:] - h_true, 'r*-', label='LMS, µ=0.001')
 plt.plot(n, H_RLS_1[-1,:] - h_true, 'b^-', label='RLS, λ=1')
@@ -102,7 +93,6 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
-# Error signal
 plt.figure(figsize=(15, 4))
 plt.subplot(1,3,1)
 plt.plot(e_LMS, 'r')
@@ -121,7 +111,6 @@ plt.grid()
 plt.tight_layout()
 plt.show()
 
-# Ewolucja współczynników filtru
 plt.figure(figsize=(15, 4))
 plt.subplot(1,3,1)
 plt.plot(H_LMS)
@@ -152,9 +141,8 @@ N = 50000               # Liczba próbek
 sigma_x = 1             # Odchylenie standardowe sygnału x[n]
 sigma_v = 0.5           # Odchylenie standardowe szumu
 omega_c1 = np.pi / 2    # Wyjściowa częstotliwość odcięcia
-omega_c2 = 0.8 * np.pi / 2  # Po zmianie
+omega_c2 = -0.5 * np.pi / 2  # Po zmianie
 
-# Tworzenie odpowiedzi impulsowej filtru dolnoprzepustowego
 def lowpass_impulse_response(omega_c, M):
     h = np.zeros(M)
     for n in range(-M//2, M//2):
@@ -167,10 +155,8 @@ def lowpass_impulse_response(omega_c, M):
 h_true1 = lowpass_impulse_response(omega_c1, M)
 h_true2 = lowpass_impulse_response(omega_c2, M)
 
-# Generowanie sygnału wejściowego x[n]
 x = np.random.normal(0, sigma_x, N)
 
-# Filtracja sygnału przez układ (d[n]) z podmianą w połowie
 d_clean = np.zeros(N)
 for n in range(N):
     if n < N//2:
@@ -183,40 +169,6 @@ for n in range(N):
 v = np.random.normal(0, sigma_v, N)
 d = d_clean + v
 
-# Funkcja LMS
-def LMS(x, d, M, mu):
-    N = len(x)
-    h = np.zeros(M)
-    e = np.zeros(N)
-    H = np.zeros((N, M))
-    for n in range(M, N):
-        x_vec = x[n:n-M:-1]
-        y = np.dot(h, x_vec)
-        e[n] = d[n] - y
-        h = h + 2 * mu * e[n] * x_vec
-        H[n, :] = h
-    return e, H
-
-# Funkcja RLS
-def RLS(x, d, M, lam, delta=0.01):
-    N = len(x)
-    h = np.zeros(M)
-    e = np.zeros(N)
-    P = (1/delta) * np.eye(M)
-    H = np.zeros((N, M))
-    for n in range(M, N):
-        x_vec = x[n:n-M:-1]
-        pi = np.dot(P, x_vec)
-        g = 1.0 / (lam + np.dot(x_vec, pi))
-        k = pi * g
-        y = np.dot(h, x_vec)
-        e[n] = d[n] - y
-        h = h + k * e[n]
-        P = (P - np.outer(k, np.dot(x_vec, P))) / lam
-        H[n, :] = h
-    return e, H
-
-# Symulacja
 mu = 0.001
 lam1 = 1
 lam2 = 0.999
@@ -225,14 +177,10 @@ e_LMS, H_LMS = LMS(x, d, M, mu)
 e_RLS_1, H_RLS_1 = RLS(x, d, M, lam1)
 e_RLS_0999, H_RLS_0999 = RLS(x, d, M, lam2)
 
-# --- Wykresy ---
-
 n_axis = np.arange(-M//2, M//2)
 
-# 1. Disturbed desired signal + Estymacja błędu filtru w jednym oknie
 plt.figure(figsize=(14,5))
 
-# 1a. Estymacja h[n]
 plt.subplot(1,2,1)
 plt.plot(n_axis, h_true2, 'g-o', label='True')
 plt.plot(n_axis, H_LMS[-1,:], 'r*-', label='LMS µ=0.001')
@@ -243,7 +191,6 @@ plt.title("Disturbed desired signal d[n]")
 plt.grid()
 plt.legend()
 
-# 1b. Estymacja błędu filtru: v_est[n] - h[n]
 plt.subplot(1,2,2)
 plt.plot(n_axis, H_LMS[-1,:] - h_true2, 'r*-', label='LMS µ=0.001')
 plt.plot(n_axis, H_RLS_1[-1,:] - h_true2, 'b^-', label='RLS λ=1')
@@ -256,7 +203,6 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
-# 2. Błąd estymacji w czasie
 plt.figure(figsize=(15, 4))
 plt.subplot(1,3,1)
 plt.plot(e_LMS, 'r')
@@ -273,7 +219,6 @@ plt.grid()
 plt.tight_layout()
 plt.show()
 
-# 3. Ewolucja współczynników
 plt.figure(figsize=(15, 4))
 plt.subplot(1,3,1)
 plt.plot(H_LMS)
