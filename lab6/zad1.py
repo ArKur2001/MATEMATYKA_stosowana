@@ -1,5 +1,7 @@
 from math import gcd
 
+print("ZAD a)\n")
+
 # Funkcja obliczająca największy wspólny dzielnik (NWD) dwóch liczb
 def extended_gcd(a, b):
 
