@@ -47,17 +47,17 @@ if m >= n:
 
 d = mod_inverse(e, phi)
 
-# 3. Klucz publiczny i prywatny
+
 public_key = (e, n)
 private_key = (d, n)
 
-# 4. Szyfrowanie wiadomości
+
 ciphertext = encrypt(m, public_key)
 
-# 5. Odszyfrowanie wiadomości
+
 decrypted_message = decrypt(ciphertext, private_key)
 
-# Wyświetlenie wyników
+
 print("1) n =", n, ", ∅(n) =", phi)
 print("Warunek dla e:")
 print("e musi być względnie pierwsze z ∅(n), czyli gcd(e, ∅(n)) = 1, oraz spełniać 1 < e < ∅(n).")
