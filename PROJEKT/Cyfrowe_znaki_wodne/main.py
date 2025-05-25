@@ -5,22 +5,22 @@ import numpy as np
 
 class Main(Scene):
     def construct(self):
-        #self.title()
-        #self.wait(2)
-        #self.introduction()
-        #self.wait(2)
-        #self.classification()
-        #self.wait(2)
-        #self.spatial_domain()
-        #self.wait(2)
-        #self.spatial_domain_example()
-        #self.wait(2)
-        #self.lsb_weaknesses()  # Kompresja i problem na pierwszym miejscu
-        #self.wait(2)
-        #self.lsb_advantages()   # Zalety na osobnym slajdzie
-        #self.wait(2)
-        #self.lsb_disadvantages() # Wady na osobnym slajdzie
-        #self.wait(2)
+        self.title()
+        self.wait(2)
+        self.introduction()
+        self.wait(2)
+        self.classification()
+        self.wait(2)
+        self.spatial_domain()
+        self.wait(2)
+        self.spatial_domain_example()
+        self.wait(2)
+        self.lsb_weaknesses()  # Kompresja i problem na pierwszym miejscu
+        self.wait(2)
+        self.lsb_advantages()   # Zalety na osobnym slajdzie
+        self.wait(2)
+        self.lsb_disadvantages() # Wady na osobnym slajdzie
+        self.wait(2)
         self.dft_slide_overview()
         self.wait(2)
         self.dft_math_overview()
@@ -31,6 +31,10 @@ class Main(Scene):
         self.dft_advantages()   # Zalety na osobnym slajdzie
         self.wait(2)
         self.dft_disadvantages()
+        self.wait(2)
+        self.usage_examples()
+        self.wait(2)
+        self.thank_you_slide()
 
     def set_background(self):
         bg_image = ImageMobject(r"background.jpg")
@@ -357,6 +361,53 @@ class Main(Scene):
         self.wait(5)
         self.play(FadeOut(VGroup(title, dis_text)))
 
+    def usage_examples(self):
+        self.set_background()
+
+        # Tytuł
+        title = Text("Techniki znakowania wodnego w różnych mediach", font_size=36)
+        title.to_edge(UP)
+
+        # Tabela danych
+        table = Table(
+            [["Obrazy", "Niewidoczny", "DCT, LSB, DWT"],
+             ["Wideo", "Niewidoczny", "DCT + czasowa synchronizacja"],
+             ["Audio", "Niewidoczny", "Kodowanie w częstotliwości (FFT, DWT)"],
+             ["Dokumenty PDF", "Widoczny/Niewidoczny", "Ukryty tekst, metadane, znaki binarne"],
+             ["Streaming", "Niewidoczny", "Znaki przypisane do użytkownika"]],
+            col_labels=[Text("Rodzaj pliku"), Text("Typ znaku wodnego"), Text("Typowa technika")],
+            include_outer_lines=True
+        )       
+        table.scale(0.4)
+        table.next_to(title, DOWN, buff=0.6)
+
+        # Animacja pojawienia się tabeli
+        self.play(FadeIn(title))
+        self.play(Create(table))
+        self.wait(2)
+
+        # Opis skrótów
+        explanations = VGroup(
+            Text("DCT – Dyskretna Transformata Cosinusowa", font_size=28),
+            Text("LSB – Least Significant Bit (najmniej znaczący bit)", font_size=28),
+            Text("DWT – Dyskretna Transformata Falkowa (Wavelet)", font_size=28),
+            Text("FFT – Szybka Transformata Fouriera (Fast Fourier Transform)", font_size=28)
+        )
+        explanations.arrange(DOWN, aligned_edge=LEFT, buff=0.3)
+        explanations.scale(0.5)
+        explanations.to_edge(DOWN)
+
+        # Pojawienie się skrótów z krótkim opóźnieniem
+        self.play(LaggedStart(*[FadeIn(line) for line in explanations], lag_ratio=0.4))
+        self.wait(4)
+
+    def thank_you_slide(self):
+        self.set_background()
+
+        text = Text("Dziękujemy za uwagę", font_size=72)
+        self.play(FadeIn(text, scale=0.5))
+        self.wait(3)
+        self.play(FadeOut(text))
 
 # 👇 Ten kod tworzy pliki pomocnicze do animacji
 if __name__ == "__main__":
