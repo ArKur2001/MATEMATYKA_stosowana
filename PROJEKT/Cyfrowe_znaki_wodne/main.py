@@ -5,21 +5,23 @@ import numpy as np
 
 class Main(Scene):
     def construct(self):
-        self.title()
-        self.wait(2)
-        self.introduction()
-        self.wait(2)
-        self.classification()
-        self.wait(2)
-        self.spatial_domain()
-        self.wait(2)
-        self.spatial_domain_example()
-        self.wait(2)
-        self.lsb_weaknesses()  # Kompresja i problem na pierwszym miejscu
-        self.wait(2)
-        self.lsb_advantages()   # Zalety na osobnym slajdzie
-        self.wait(2)
-        self.lsb_disadvantages() # Wady na osobnym slajdzie
+        #self.title()
+        #self.wait(2)
+        #self.introduction()
+        #self.wait(2)
+        #self.classification()
+        #self.wait(2)
+        #self.spatial_domain()
+        #self.wait(2)
+        #self.spatial_domain_example()
+        #self.wait(2)
+        #self.lsb_weaknesses()  # Kompresja i problem na pierwszym miejscu
+        #self.wait(2)
+        #self.lsb_advantages()   # Zalety na osobnym slajdzie
+        #self.wait(2)
+        #self.lsb_disadvantages() # Wady na osobnym slajdzie
+        #self.wait(2)
+        self.dft_slide_overview()
         self.wait(2)
         self.dft_math_overview()
         self.wait(2)
@@ -202,6 +204,26 @@ class Main(Scene):
         self.play(LaggedStart(*[Write(t) for t in dis_text], lag_ratio=0.2))
         self.wait(5)
         self.play(FadeOut(VGroup(title, dis_text)))
+
+    def dft_slide_overview(self):
+        self.set_background()
+        spatial_text = Text("Cyfrowy znak wodny za pomocą DFT", font_size=48)
+        spatial_text.to_edge(UP)
+        paragraph = Paragraph(
+            "Dyskretna Transformata Fouriera (DFT) jest matematycznym narzędziem, które pozwala przekształcić sygnał",
+            "(np. obraz) z dziedziny przestrzennej (czyli wartości jasności pikseli) do dziedziny częstotliwościowej. Oznacza",
+            "to, że zamiast patrzeć na obraz jako zbiór pikseli, analizujemy go jako kombinację różnych częstotliwości,",
+            "które reprezentują zmienność jasności w poziomie i pionie.",
+            " ",
+            "W kontekście znakowania wodnego, DFT pozwala na ukrycie informacji w częstotliwościach średnich lub",
+            "wysokich, które są mniej podatne na utratę w wyniku typowych operacji na obrazie, takich jak kompresja",
+            "JPEG, skalowanie czy niewielkie rozmycie. Jest to ogromna zaleta w porównaniu do prostych metod jak LSB,",
+            "które modyfikują piksele bezpośrednio."
+        )
+        paragraph.width = 14
+        paragraph.next_to(spatial_text, DOWN, buff=2)
+        self.play(FadeIn(spatial_text))
+        self.play(Write(paragraph, run_time=10))
 
     def dft_math_overview(self):
         self.set_background()
