@@ -1,0 +1,4 @@
+# This file is used internally by FFMPEG.
+file 'file:C:/Users/janek/Desktop/MATEMATYKA_stosowana/media/videos/main/480p15/partial_movie_files/TitleScreen/1185818338_815461913_313870766.mp4'
+file 'file:C:/Users/janek/Desktop/MATEMATYKA_stosowana/media/videos/main/480p15/partial_movie_files/TitleScreen/624642324_367525560_3221350786.mp4'
+file 'file:C:/Users/janek/Desktop/MATEMATYKA_stosowana/media/videos/main/480p15/partial_movie_files/TitleScreen/624642324_2408024828_1672289869.mp4'
