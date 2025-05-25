@@ -13,7 +13,10 @@ class Main(Scene):
         # self.wait(4)
         # self.spatial_domain()
         # self.wait(4)
-        self.spatial_domain_example()
+        # self.spatial_domain_example()
+        # self.wait(4)
+        self.spatial_domain_example_extraction()
+        
 
 
     def set_background(self):
@@ -96,26 +99,26 @@ class Main(Scene):
 
     def spatial_domain_example(self):
         self.set_background()
-        example_text = Text("Przykład znaku wodnego w metodą LSB", font_size=36)
+        example_text = Text("Przykład znaku wodnego metodą LSB", font_size=36)
         example_text.to_edge(UP)
 
         # Load an image to demonstrate the watermarking
         image = ImageMobject("example_image.jpg")
         watermark = ImageMobject("watermark.jpg")
+        watermark_bw = ImageMobject("watermark_bw.jpg")
 
-
-        watermark.next_to(example_text, DOWN, buff=0.5)
+        watermark.next_to(example_text, DOWN, buff=2)
         watermark.scale_to_fit_height(4)
         image.scale_to_fit_height(4)
         image.to_edge(LEFT, buff=.5)
+        image.to_edge(DOWN, buff=.5)
         watermark.next_to(image, RIGHT, buff=1.0)
         self.play(FadeIn(example_text))
         self.wait(2)
         self.play(FadeIn(image))
         self.wait(2)
         self.play(FadeIn(watermark))
-        self.wait(4)
-
+        self.wait(2)
         c = Circle(radius=.2, color=RED)
 
         top_left = watermark.get_corner(UP + LEFT)
@@ -125,26 +128,260 @@ class Main(Scene):
         self.play(Create(c))
 
         # Create a 3x3 grid of squares with random 0/255 values above the circle
-        grid_size = 3
-        cell_size = 0.5
-        start = c.get_center() + np.array([0, 0.8, 0])  # position above the circle
+        cell_size = 1
+        start = c.get_center() + np.array([-0.5, 1.5, 0])  # position above the circle
+
+        grid1 = [
+            [[255,255,255],[255,255,255],[255,255,255]],
+            [[255,255,255],[64,255,64],[64,255,64]],
+            [[255,255,255],[64,255,64],[64,255,64]],
+            ]
+        
+        grid2 = [
+            [[255,255,255],[255,255,255],[255,255,255]],
+            [[255,255,255],[0,0,0],[0,0,0]],
+            [[255,255,255],[0,0,0],[0,0,0]],
+            ]
+
+        squares1, labels1 = self.create_grid(grid1, cell_size, start)
+        squares2, labels2 = self.create_grid(grid2, cell_size, start)
+        squares2.move_to(squares1.get_center())
+        labels2.move_to(labels1.get_center())
+
+
+
+        self.wait(2)
+        self.play(FadeIn(squares1), FadeIn(labels1))
+
+        self.wait(2)
+
+        watermark_bw.scale_to_fit_height(4)
+        watermark_bw.move_to(watermark.get_center())
+        self.play(Transform(watermark, watermark_bw), Transform(squares1, squares2), Transform(labels1, labels2))
+
+
+        self.wait(4)
+
+        # Show the code for extract_lsb as a text paragraph
+        code = '''
+    def embed_lsb(image, watermark):
+        for y in range(height):
+            for x in range(width):
+                r, g, b = pixels[x, y]
+                # Use the LSB of the blue channel to embed the watermark
+                wm_bit = 1 if watermark_pixels[x, y] == 255 else 0
+                b = (b & ~1) | wm_bit
+                result_pixels[x, y] = (r, g, b)
+    '''
+        rendered_code = Code(
+            code_string=code,
+            language="python",
+            background="window",
+            formatter_style="native")
+        
+        print(rendered_code.get_styles_list())
+
+        rendered_code.scale(0.5)
+        rendered_code.to_edge(DOWN, buff=1.0)
+
+        self.play(FadeIn(rendered_code))
+
+        self.wait(4)
+
+        c2 = Circle(radius=.2, color=RED)
+
+        top_left = image.get_corner(UP + LEFT)
+        offset = np.array([1.4, -0.5, 0])
+        c2.move_to(top_left + offset)
+
+        self.play(Create(c2))
+
+        start2 = c2.get_center() + np.array([-0.5, 1.5, 0])  # position above the circle
+
+        
+        grid3 = [
+            [[54,55,35],[53,55,31],[52,56,30]],
+            [[55,51,33],[52,57,36],[57,51,37]],
+            [[50,52,32],[51,59,32],[59,52,34]],
+            ]
+
+
+        
+        squares3, labels3 = self.create_grid(grid3, cell_size, start2)
+
+        self.play(FadeIn(squares3), FadeIn(labels3))
+
+
+
+        for i, square in enumerate(squares2):
+            square1_center = square.get_center()
+            square3_center = squares3[i].get_center()
+            arrow = Arrow(start=square1_center, end=square3_center, buff=0.1, color=YELLOW)
+
+            self.play(Create(arrow))
+            self.remove(arrow)
+            number_to_modify = labels3[(i*3)+2]
+            number_from_old_grid = labels1[(i*3)+2]
+
+
+            if number_from_old_grid.text == "255":
+                new_text = str(int(number_to_modify.text) + 1)
+            else:
+                new_text = number_to_modify.text
+
+            number_to_modify.become(Text(new_text, font_size=15, color=number_to_modify.color).move_to(number_to_modify.get_center()))
+
+        self.wait(2)
+
+
+        watermarked_image = ImageMobject("watermarked_image.jpg")
+        
+        watermarked_image.scale_to_fit_height(4)
+        watermarked_image.next_to(watermark, RIGHT, buff=1.0)
+
+        self.play(FadeIn(watermarked_image))
+
+
+
+    def spatial_domain_example_extraction(self):
+        self.set_background()
+        example_text = Text("Przykład ekstrakcji znaku wodnego metodą LSB", font_size=36)
+        example_text.to_edge(UP)
+
+        # Load the watermarked image
+        watermarked_image = ImageMobject("watermarked_image.jpg")
+        extracted_watermark = ImageMobject("extracted_watermark.jpg")
+
+        self.add(example_text)
+        watermarked_image.scale_to_fit_height(4)
+        watermarked_image.to_edge(LEFT, buff=.5)
+        watermarked_image.to_edge(DOWN, buff=.5)
+
+        extracted_watermark.scale_to_fit_height(4)
+        extracted_watermark.to_edge(RIGHT, buff=.5)
+        extracted_watermark.to_edge(DOWN, buff=.5)
+
+        self.add(watermarked_image)
+
+        code = '''
+    def extract_lsb(watermarked_image):
+        for y in range(height):
+            for x in range(width):
+                _, _, b = watermarked_pixels[x, y]
+                extracted_pixels[x, y] = 255 if (b & 1) else 0
+        return extracted
+    '''
+        rendered_code = Code(
+            code_string=code,
+            language="python",
+            background="window",
+            formatter_style="native")
+    
+
+
+        rendered_code.scale(0.5)
+        rendered_code.to_edge(DOWN, buff=1.0)
+
+        self.play(FadeIn(rendered_code))
+
+
+        c2 = Circle(radius=.2, color=RED)
+
+        top_left = watermarked_image.get_corner(UP + LEFT)
+        offset = np.array([1.4, -0.5, 0])
+        c2.move_to(top_left + offset)
+
+        self.play(Create(c2))
+
+        start2 = c2.get_center() + np.array([-0.5, 1.5, 0])  # position above the circle
+
+        
+        grid3 = [
+            [[54,55,36],[53,55,32],[52,56,31]],
+            [[55,51,34],[52,57,36],[57,51,37]],
+            [[50,52,33],[51,59,32],[59,52,34]],
+            ]
+
+        cell_size = 1
+
+        
+        squares3, labels3 = self.create_grid(grid3, cell_size, start2)
+        squares5, labels5 = self.create_grid(grid3, cell_size, start2)
+
+        self.play(FadeIn(squares3), FadeIn(labels3))
+        self.add(squares5, labels5)
+
+
+
+        self.wait(5)
+
+        squares4, labels4 = self.create_grid(grid3, cell_size, start2)
+
+        squares4.move_to(squares3.get_center() + np.array([7, 0, 0]))
+        labels4.move_to(squares4.get_center())
+
+        self.play(Transform(squares3, squares4), Transform(labels3, labels4))
+
+        grid2 = [
+            [[0,0,1],[0,0,1],[0,0,1]],
+            [[0,0,1],[0,0,0],[0,0,0]],
+            [[0,0,1],[0,0,0],[0,0,0]],
+            ]
+
+        squares6, labels6 = self.create_grid(grid2, cell_size, start2)
+        squares6.move_to(squares3.get_center())
+        labels6.move_to(squares4.get_center())
+        self.play(Transform(squares4, squares6), Transform(labels4, labels6))
+
+        grid2 = [
+            [[255,255,255],[255,255,255],[255,255,255]],
+            [[255,255,255],[0,0,0],[0,0,0]],
+            [[255,255,255],[0,0,0],[0,0,0]],
+            ]
+
+        squares7, labels7 = self.create_grid(grid2, cell_size, start2)
+        squares7.move_to(squares3.get_center())
+        labels7.move_to(squares4.get_center())
+        self.play(Transform(squares6, squares7), Transform(labels6, labels7))
+
+
+
+        self.play(FadeIn(extracted_watermark))
+
+
+    def create_grid(self, grid,cell_size, start):
 
         squares = VGroup()
         labels = VGroup()
-        for i in range(grid_size):
-            for j in range(grid_size):
-                value = random.choice([0, 255])
+
+
+        for i, row in enumerate(grid):
+            for j, collumn in enumerate(row):
                 square = Square(side_length=cell_size)
-                square.set_fill(WHITE, opacity=1)
+                square.set_fill(color.rgb_to_color(collumn), opacity=1)
                 square.move_to(start + np.array([(j - 1) * cell_size, (1 - i) * cell_size, 0]))
                 square.set_stroke(BLACK, width=1)
-                label = Text(str(value), font_size=10, color=BLACK)
-                label.move_to(square.get_center())
-                squares.add(square)
-                labels.add(label)
 
-        self.wait(2)
-        self.play(FadeIn(squares), FadeIn(labels))
+                    
+                label0 = Text(str(collumn[0]), font_size=15, color=BLACK )
+                label1 = Text(str(collumn[1]), font_size=15, color=BLACK )
+                label2 = Text(str(collumn[2]), font_size=15, color=BLACK )
+
+
+                if collumn[0] < 127  and collumn[1] < 127  and collumn[2] < 127 :
+                    label0.set_color(WHITE)
+                    label1.set_color(WHITE)
+                    label2.set_color(WHITE)
+
+                label0.move_to(square.get_center())
+                label1.next_to(label0, DOWN, buff=0.1)
+                label2.next_to(label0, UP, buff=0.1)
+                squares.add(square)
+                labels.add(label0)
+                labels.add(label1)
+                labels.add(label2)
+
+        return squares, labels
 
 
 if __name__ == "__main__":
@@ -155,10 +392,10 @@ if __name__ == "__main__":
 
     # Convert the image to black and white
     bw_img = img.convert("L")
-    bw_img.save("watermarj_bw.jpg")
+    bw_img.save("watermark_bw.jpg")
 
     # # Print RGB values of the black and white image
-    # bw_pixels = bw_img.load()
+    # bw_pixels = img.load()
     # width, height = bw_img.size
     # for y in range(height):
     #     for x in range(width):
