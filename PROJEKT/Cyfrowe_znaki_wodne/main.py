@@ -5,32 +5,46 @@ import numpy as np
 
 class Main(Scene):
     def construct(self):
+        self.first_slide()
+        self.wait(10)
         self.title()
         self.wait(2)
         self.introduction()
+        self.wait(10)
+        self.visible_non_visible()
         self.wait(10)
         self.classification()
         self.wait(10)
         self.spatial_domain()
         self.wait(10)
         self.spatial_domain_example()
+        self.spatial_domain_example_extraction()
+        self.adding_noise()
         self.wait(10)
-        # self.spatial_domain_example_extraction()
-        # self.wait(2)
-        # self.lsb_weaknesses()  # Kompresja i problem na pierwszym miejscu
-        # self.wait(2)
-        # self.lsb_advantages()   # Zalety na osobnym slajdzie
-        # self.wait(2)
-        # self.lsb_disadvantages() # Wady na osobnym slajdzie
-        # self.wait(2)
-        # self.dft_math_overview()
-        # self.wait(2)
-        # self.DFT_example()
-        # self.wait(2)
-        # self.DFT_compression()
-        # self.dft_advantages()   # Zalety na osobnym slajdzie
-        # self.wait(2)
-        # self.dft_disadvantages()
+        self.adding_bits()
+        self.wait(10)
+        self.lsb_weaknesses()  # Kompresja i problem na pierwszym miejscu
+        self.wait(10)
+        self.lsb_advantages()   # Zalety na osobnym slajdzie
+        self.wait(10)
+        self.lsb_disadvantages() # Wady na osobnym slajdzie
+        self.wait(10)
+        self.dft_slide_overview()
+        self.wait(10)
+        self.dft_math_overview()
+        self.wait(10)
+        self.DFT_example()
+        self.wait(10)
+        self.DFT_compression()
+        self.wait(10)
+        self.dft_advantages()   # Zalety na osobnym slajdzie
+        self.wait(10)
+        self.dft_disadvantages()
+        self.wait(10)
+        self.usage_examples()
+        self.wait(10)
+        self.making_of()
+        self.thank_you_slide()
 
     def set_background(self):
         bg_image = ImageMobject(r"background.jpg")
@@ -38,6 +52,28 @@ class Main(Scene):
         bg_image.scale_to_fit_width(self.camera.frame_width)
         bg_image.move_to(self.camera.frame_center)
         self.add(bg_image)
+
+    def first_slide(self):
+        self.set_background()
+
+        clear = ImageMobject("example_image.jpg")
+        watermarked = ImageMobject("watermarked_image.jpg")
+        dft_image = ImageMobject("compressed_image.jpg")
+
+        clear.scale_to_fit_height(4)
+        watermarked.scale_to_fit_height(4)
+        dft_image.scale_to_fit_height(4)
+
+        clear.to_edge(LEFT, buff=.5)
+        watermarked.next_to(clear, RIGHT, buff=.5)
+        dft_image.next_to(watermarked, RIGHT, buff=.5)
+
+
+        # clear.to_edge(LEFT, buff=.5)
+        # LSB.next_to(clear, RIGHT, buff=.5)
+        # DFT.next_to(LSB, RIGHT, buff=.5)
+
+        self.play(FadeIn(clear), FadeIn(watermarked), FadeIn(dft_image))
 
     def title(self):
         self.set_background()
@@ -63,6 +99,18 @@ class Main(Scene):
         paragraph.next_to(intro_text, DOWN, buff=2.0)
         self.play(FadeIn(intro_text))
         self.play(Write(paragraph, run_time=12))
+
+    def visible_non_visible(self):
+        self.set_background()
+        visible = ImageMobject("visible_watermark.jpg")
+        non_visible = ImageMobject("watermarked_image.jpg")
+
+        visible.scale_to_fit_height(4)
+        non_visible.scale_to_fit_height(4)
+        visible.to_edge(LEFT, buff=1)
+        non_visible.to_edge(RIGHT, buff=1)
+
+        self.play(FadeIn(visible), FadeIn(non_visible))
 
     def classification(self):
         self.set_background()
@@ -343,6 +391,70 @@ class Main(Scene):
 
         self.play(FadeIn(extracted_watermark))
 
+    def adding_noise(self):
+        self.set_background()
+
+        title = Text("Dodawanie szumu do obrazu", font_size=48)
+        title.to_edge(UP)
+
+        watermarked_image = ImageMobject("watermarked_image1.jpg")
+        watermarked_image.scale_to_fit_height(4)
+        watermarked_image.to_edge(LEFT, buff=.5)
+
+        noisy_image = ImageMobject("watermarked_image_noisy1.jpg")
+        noisy_image.scale_to_fit_height(4)
+        noisy_image.to_edge(RIGHT, buff=.5)
+
+
+        extracted_watermark = ImageMobject("extracted_watermark1.jpg")
+        extracted_watermark.scale_to_fit_height(4)
+        extracted_watermark.move_to(watermarked_image.get_center())
+
+        noisy_extracted_watermark = ImageMobject("extracted_watermark_noisy1.jpg")
+        noisy_extracted_watermark.scale_to_fit_height(4)
+        noisy_extracted_watermark.move_to(noisy_image.get_center())
+
+        self.play(FadeIn(title))
+
+        self.wait(2)
+
+        self.play(FadeIn(watermarked_image), FadeIn(noisy_image))
+
+        self.wait(2)
+
+        self.play(Transform(watermarked_image, extracted_watermark))
+
+        self.wait(2)
+
+        self.play(Transform(noisy_image, noisy_extracted_watermark))
+
+        self.wait(2)
+
+    def adding_bits(self):
+        self.set_background()
+        title = Text("Kodowanie na większej ilości bitów", font_size=48)
+
+        title.to_edge(UP)
+        self.play(FadeIn(title))
+
+        for i in range(0, 7):
+            image = ImageMobject(f"watermarked_image_noisy{i}.jpg")
+            image.scale_to_fit_height(3)
+            image.to_edge(LEFT, buff=1)
+            image.shift(UP * 1.5)
+            image.shift(RIGHT * i * 1.5)
+            self.play(FadeIn(image))
+
+        
+        for i in range(0, 7):
+            image = ImageMobject(f"extracted_watermark_noisy{i}.jpg")
+            image.scale_to_fit_height(3)
+            image.to_edge(LEFT, buff=1)
+            image.shift(DOWN * 1.5)
+            image.shift(RIGHT * i * 1.5)
+            self.play(FadeIn(image))
+
+        self.wait(5)
 
     def create_grid(self, grid,cell_size, start):
 
@@ -422,8 +534,6 @@ class Main(Scene):
         self.play(FadeIn(title))
         self.wait(1)
         self.play(LaggedStart(*[Write(t) for t in adv_text], lag_ratio=0.2))
-        self.wait(5)
-        self.play(FadeOut(VGroup(title, adv_text)))
 
     def lsb_disadvantages(self):
         self.set_background()
@@ -442,8 +552,26 @@ class Main(Scene):
         self.play(FadeIn(title))
         self.wait(1)
         self.play(LaggedStart(*[Write(t) for t in dis_text], lag_ratio=0.2))
-        self.wait(5)
-        self.play(FadeOut(VGroup(title, dis_text)))
+
+    def dft_slide_overview(self):
+        self.set_background()
+        spatial_text = Text("Cyfrowy znak wodny za pomocą DFT", font_size=48)
+        spatial_text.to_edge(UP)
+        paragraph = Paragraph(
+            "Dyskretna Transformata Fouriera (DFT) jest matematycznym narzędziem, które pozwala przekształcić sygnał",
+            "(np. obraz) z dziedziny przestrzennej (czyli wartości jasności pikseli) do dziedziny częstotliwościowej. Oznacza",
+            "to, że zamiast patrzeć na obraz jako zbiór pikseli, analizujemy go jako kombinację różnych częstotliwości,",
+            "które reprezentują zmienność jasności w poziomie i pionie.",
+            " ",
+            "W kontekście znakowania wodnego, DFT pozwala na ukrycie informacji w częstotliwościach średnich lub",
+            "wysokich, które są mniej podatne na utratę w wyniku typowych operacji na obrazie, takich jak kompresja",
+            "JPEG, skalowanie czy niewielkie rozmycie. Jest to ogromna zaleta w porównaniu do prostych metod jak LSB,",
+            "które modyfikują piksele bezpośrednio."
+        )
+        paragraph.width = 14
+        paragraph.next_to(spatial_text, DOWN, buff=2)
+        self.play(FadeIn(spatial_text))
+        self.play(Write(paragraph, run_time=10))
 
     def dft_math_overview(self):
         self.set_background()
@@ -486,10 +614,7 @@ class Main(Scene):
         self.play(FadeOut(group2))
 
         self.play(FadeIn(group3))
-        self.wait(4)
-        self.play(FadeOut(group3))
 
-        self.play(FadeOut(title))
 
     def DFT_example(self):
         self.set_background()
@@ -507,8 +632,7 @@ class Main(Scene):
         self.play(FadeIn(image))
         self.wait(2)
         self.play(FadeIn(watermark))
-        self.wait(4)
-        self.wait(2)
+
 
     def DFT_compression(self):
         self.set_background()
@@ -535,7 +659,6 @@ class Main(Scene):
         self.play(FadeIn(title))
         self.wait(1)
         self.play(FadeIn(all_imgs))
-        self.wait(5)
 
     def dft_advantages(self):
         self.set_background()
@@ -554,8 +677,6 @@ class Main(Scene):
         self.play(FadeIn(title))
         self.wait(1)
         self.play(LaggedStart(*[Write(t) for t in adv_text], lag_ratio=0.2))
-        self.wait(5)
-        self.play(FadeOut(VGroup(title, adv_text)))
     
     def dft_disadvantages(self):
         self.set_background()
@@ -574,8 +695,78 @@ class Main(Scene):
         self.play(FadeIn(title))
         self.wait(1)
         self.play(LaggedStart(*[Write(t) for t in dis_text], lag_ratio=0.2))
+
+    def usage_examples(self):
+        self.set_background()
+
+        # Tytuł
+        title = Text("Techniki znakowania wodnego w różnych mediach", font_size=36)
+        title.to_edge(UP)
+
+        # Tabela danych
+        table = Table(
+            [["Obrazy", "Niewidoczny", "DCT, LSB, DWT"],
+             ["Wideo", "Niewidoczny", "DCT + czasowa synchronizacja"],
+             ["Audio", "Niewidoczny", "Kodowanie w częstotliwości (FFT, DWT)"],
+             ["Dokumenty PDF", "Widoczny/Niewidoczny", "Ukryty tekst, metadane, znaki binarne"],
+             ["Streaming", "Niewidoczny", "Znaki przypisane do użytkownika"]],
+            col_labels=[Text("Rodzaj pliku"), Text("Typ znaku wodnego"), Text("Typowa technika")],
+            include_outer_lines=True
+        )       
+        table.scale(0.4)
+        table.next_to(title, DOWN, buff=0.6)
+
+        # Animacja pojawienia się tabeli
+        self.play(FadeIn(title))
+        self.play(Create(table))
+        self.wait(2)
+
+        # Opis skrótów
+        explanations = VGroup(
+            Text("DCT – Dyskretna Transformata Cosinusowa", font_size=28),
+            Text("LSB – Least Significant Bit (najmniej znaczący bit)", font_size=28),
+            Text("DWT – Dyskretna Transformata Falkowa (Wavelet)", font_size=28),
+            Text("FFT – Szybka Transformata Fouriera (Fast Fourier Transform)", font_size=28)
+        )
+        explanations.arrange(DOWN, aligned_edge=LEFT, buff=0.3)
+        explanations.scale(0.5)
+        explanations.to_edge(DOWN)
+
+        # Pojawienie się skrótów z krótkim opóźnieniem
+        self.play(LaggedStart(*[FadeIn(line) for line in explanations], lag_ratio=0.4))
+
+    def making_of(self):
+        self.set_background()
+        title = Text("Notable mentions", font_size=48)
+
+        title.to_edge(UP)
+        self.play(FadeIn(title))
+
+        for i in range(1, 9):
+            image = ImageMobject(f"fail{i}.jpg")
+            image.scale_to_fit_height(7)
+            self.bring_to_front(title)
+            self.play(FadeIn(image))
+            self.wait(2)
+            
+
+
+
+        self.play(FadeIn(image))
         self.wait(5)
-        self.play(FadeOut(VGroup(title, dis_text)))
+        
+
+
+
+    def thank_you_slide(self):
+        self.set_background()
+
+        text = Text("Dziękujemy za uwagę", font_size=72)
+        self.play(FadeIn(text, scale=0.5))
+        self.wait(3)
+        self.play(FadeOut(text))
+
+
 
 
 # 👇 Ten kod tworzy pliki pomocnicze do animacji
@@ -647,14 +838,20 @@ if __name__ == "__main__":
         bitmask = ((2**8)-1) - ((2**depth) - 1)
         print("Bitmask:", bin(bitmask))
 
+
         for y in range(height):
             for x in range(width):
                 r, g, b = pixels[x, y]
                 wm_bit = 1 if watermark_pixels[x, y] == 255 else 0
-                r = (r & bitmask) | wm_bit
-                g = (g & bitmask) | wm_bit
-                b = (b & bitmask) | wm_bit
-                    # print(bin(~((2**depth))))
+
+                if wm_bit:
+                    r = (r | ((2**depth) - 1))
+                    g = (g | ((2**depth) - 1) )
+                    b = (b | ((2**depth) - 1))
+                else:
+                    r = (r & bitmask)
+                    g = (g & bitmask)
+                    b = (b & bitmask)
 
 
                 # print(wm_bit*(2**depth-1))
@@ -691,9 +888,18 @@ if __name__ == "__main__":
     compressed = Image.open("compressed_image.jpg")
     extract_lsb(compressed).save("extracted_from_compressed.jpg")
 
-
-    for n in range(1, 8):
+    # Dodaj szum do obrazu z LSB
+    def add_noise(image, noise_level=30):
+        arr = np.array(image).astype(np.int16)
+        noise = np.random.randint(-noise_level, noise_level + 1, arr.shape)
+        noisy_arr = np.clip(arr + noise, 0, 255).astype(np.uint8)
+        return Image.fromarray(noisy_arr)
+    
+    for n in range(0, 8):
         watermarked = embed_lsb_variable(image, watermark, n)
         watermarked.save(f"watermarked_image{n}.jpg")
         extract_lsb_variable(watermarked, n).save(f"extracted_watermark{n}.jpg")
 
+        noisy_watermarked = add_noise(watermarked)
+        noisy_watermarked.save(f"watermarked_image_noisy{n}.jpg")
+        extract_lsb(noisy_watermarked).save(f"extracted_watermark_noisy{n}.jpg")
