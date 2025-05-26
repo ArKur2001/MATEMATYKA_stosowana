@@ -1,0 +1,6 @@
+# This file is used internally by FFMPEG.
+file 'file:C:/Users/janek/Desktop/python/MATEMATYKA_stosowana/lab7/media/videos/1080p60/partial_movie_files/MovingFrameBox/3977891868_3648705573_223132457.mp4'
+file 'file:C:/Users/janek/Desktop/python/MATEMATYKA_stosowana/lab7/media/videos/1080p60/partial_movie_files/MovingFrameBox/2852726489_590328091_3920394439.mp4'
+file 'file:C:/Users/janek/Desktop/python/MATEMATYKA_stosowana/lab7/media/videos/1080p60/partial_movie_files/MovingFrameBox/2852726489_2688965532_1461628566.mp4'
+file 'file:C:/Users/janek/Desktop/python/MATEMATYKA_stosowana/lab7/media/videos/1080p60/partial_movie_files/MovingFrameBox/2852726489_2892824295_1354089588.mp4'
+file 'file:C:/Users/janek/Desktop/python/MATEMATYKA_stosowana/lab7/media/videos/1080p60/partial_movie_files/MovingFrameBox/2852726489_2834709167_281049364.mp4'
